@@ -50,11 +50,12 @@ exports.createResolvers = ({
   for (const typeName in typeMap) {
     const typeEntry = typeMap[typeName];
     const typeFields = (typeEntry && typeEntry.getFields && typeEntry.getFields()) || {};
+    
     const typeResolver = {};
     for (const fieldName in typeFields) {
       const field = typeFields[fieldName];
 
-      if (shouldCreateNode(field)){
+      if (typeEntry.astNode && typeEntry.astNode.kind === 'ObjectTypeDefinition' && shouldCreateNode(field)){
         typeResolver[`${fieldName}Sharp`] = {
           type: 'File',
           resolve(source) {
@@ -83,3 +84,4 @@ exports.createResolvers = ({
     createResolvers(resolvers);
   }
 }
+
