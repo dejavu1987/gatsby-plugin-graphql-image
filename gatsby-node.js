@@ -24,23 +24,15 @@ exports.createResolvers = ({
 
   const reSchema = new RegExp(`${schemaName}_`);
   const reNotNull = new RegExp(`!$`);
-  function shouldCreateNode(field) {
-    if ((typeof imageFieldName === `string`) && (field.name === imageFieldName)) {
-      return true;
+  function shouldCreateNode(field, typeEntry) {
+    if ((typeof imageFieldName === `string`) && (field.name === imageFieldName) || (imageFieldName instanceof RegExp) && imageFieldName.test(field.name)) {
+      const typeEntryStr = String(typeEntry);
+      console.log(`Found a matching field ${field.name} in type ${typeEntryStr}`);
+      if ((typeof imageFieldType === `string`) && (typeEntryStr === imageFieldType) || (imageFieldType instanceof RegExp) && imageFieldType.test(typeEntryStr)) {
+        console.log(`Both type and field name matches!! Adding ${field.name}Sharp`);
+        return true;
+      }
     }
-    if ((imageFieldName instanceof RegExp) && imageFieldName.test(field.name)) {
-      return true;
-    }
-
-    const fieldType = String(field.type).replace(reSchema, '').replace(reNotNull, '');
-
-    if ((typeof imageFieldType === `string`) && (fieldType === imageFieldType)) {
-      return true;
-    }
-    if ((imageFieldType instanceof RegExp) && imageFieldType.test(fieldType)) {
-      return true;
-    }
-
     return false;
   }
 
@@ -55,7 +47,9 @@ exports.createResolvers = ({
     for (const fieldName in typeFields) {
       const field = typeFields[fieldName];
 
-      if (typeEntry.astNode && typeEntry.astNode.kind === 'ObjectTypeDefinition' && shouldCreateNode(field)){
+      if (shouldCreateNode(field, typeEntry)){
+        
+        
         typeResolver[`${fieldName}Sharp`] = {
           type: 'File',
           resolve(source) {
